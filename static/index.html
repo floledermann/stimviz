@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stimviz</title>
+
+<link rel="stylesheet" href="style.css">
+
+<style>
+
+.taskResult svg {
+  width: 100%;
+  height: 300px;
+}
+</style>
+
+<script src="https://d3js.org/d3.v6.min.js"></script>
+
+</head>
+<body>
+
+
+<script>
+
+let taskSettings = [
+  { show: false, correct: x => false },
+  { name: "Snellen E",
+    param: "size",
+    correct: trial => trial.condition.angle == trial.response.angle
+  },
+  { name: "Line Interior",
+    param: "size",
+    correct: trial => trial.condition.centerLine == trial.response.centerLine
+  },
+  { name: "Dashed Line 1",
+    param: "width",
+    correct: trial => trial.condition.label == trial.response.label
+  },
+  { name: "Dashed Line 2",
+    param: "width",
+    correct: trial => trial.condition.label == trial.response.label
+  },
+  { name: "TAO",
+    param: "size",
+    correct: trial => trial.condition.shape == trial.response.shape
+  },
+  { name: "TAO Vanishing",
+    param: "size",
+    correct: trial => trial.condition.shape == trial.response.shape
+  },
+  { name: "Text",
+    param: "fontSize",
+    correct: trial => trial.condition.text == trial.response.text
+  }
+];
+
+let filenames = [1,2,3].map(i => "../testdata/experiment-1/user_" + i.toLocaleString('en',{minimumIntegerDigits:3}) + ".json");
+
+Promise.all(filenames.map(fname => d3.json(fname))).then(participantData => {
+  //console.log(participantData);
+  
+  // regroup data
+  let taskData = [];
+  
+  for (let pd of participantData) {
+  
+    let participantId = pd.participantId;
+    
+    for (let rd of pd.results) {
+    
+      let taskIndex = rd.context.taskIndex;
+      let station = rd.context.targetStation;
+      
+      if (!taskData[taskIndex]) {
+        taskData[taskIndex] = {task: taskIndex, participants: {}};
+      }
+      if (!taskData[taskIndex].participants[participantId]) {
+        taskData[taskIndex].participants[participantId] = {stations: {}};
+      }
+      if (!taskData[taskIndex].participants[participantId].stations[station]) {
+        taskData[taskIndex].participants[participantId].stations[station] = {trials: rd.trials};
+      }
+      
+    }
+  }
+  
+  console.log(taskData);
+  
+  let taskSel = d3.select("body").selectAll("section.taskResult").data(taskData);
+  
+  let newSel = taskSel.enter().append("section").attr("class", "taskResult");
+  
+  newSel.append("h2").text((d,i) => "Task " + i + " – " + taskSettings[d.task].name);
+  
+  let svg = newSel.append("svg")
+    .attr("viewBox","0 0 1000 1000")
+  ;
+  
+  let participantSel = svg.selectAll("g.participant").data(
+    d => Object.entries(d.participants).map(([k,v]) => Object.assign({}, v, {participant: k, task: d.task}))
+  );
+  newSel = participantSel.enter().append("g").attr("class", "participant");
+  
+  let stationSel = newSel.selectAll("g.station").data(
+    d => Object.entries(d.stations).map(([k,v]) => Object.assign({}, v, {station: k, participant: d.participant, task: d.task}))
+  );
+  newSel = stationSel.enter().append("g").attr("class", d => "station station" + d.station);
+  
+  let x = d3.scaleLog().domain([0.01, 5]).range([0,1000]);
+  
+  let resolutionScale = d3.scaleOrdinal().domain(["C","A","D","B"]).range([0,1,2,3]);
+    
+  let trialSel = newSel.selectAll("g.trial").data(
+    d => Object.entries(d.trials).map(([k,v]) => Object.assign({}, v, {station: d.station, participant: d.participant, task: d.task}))
+  );
+  newSel = trialSel.enter().append("g").attr("class", "trial");
+  
+  newSel.append("circle")
+    .attr("r", "5")
+    .attr("cx", d => x(parseFloat(d.condition.size || d.condition.width || d.condition.fontSize)))
+    .attr("cy", d => d.participant * 100 + resolutionScale(d.station) * 10)
+    .attr("fill", d => taskSettings[d.task].correct(d) ? "rgba(0,0,0,0.2)" : "transparent")
+    .attr("stroke-width", "1")
+    .attr("stroke","#000000")
+  ;
+  
+}) ;
+
+</script>
+
+</body>
+</html>
