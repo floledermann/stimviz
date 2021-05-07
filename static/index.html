@@ -112,7 +112,7 @@ Promise.all(filenames.map(fname => d3.json(fname))).then(participantData => {
   //let x = d3.scaleLinear().domain([0, 3]).range([0,800]);
   
   let resolutionScale = d3.scaleOrdinal().domain(["C","A","D","B"]).range([0,1,2,3]);
-  let colorScale = d3.scaleLinear().domain([0,1]).range(["#ffffff","#666666"]);
+  let colorScale = d3.scaleLinear().domain([0,1]).range(["#ffffff","#555555"]);
     
   let trialSel = stationSel.selectAll("g.trial").data(
     d => Object.entries(d.trials).map(([k,v]) => Object.assign({}, v, {station: d.station, participant: d.participant, task: d.task}))
