@@ -1,0 +1,23 @@
+{
+  "name": "stimviz",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npx http-server"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/floledermann/stimviz.git"
+  },
+  "author": "Florian Ledermann <florian.ledermann@tuwien.ac.at>",
+  "license": "AGPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/floledermann/stimviz/issues"
+  },
+  "homepage": "https://github.com/floledermann/stimviz#readme",
+  "dependencies": {
+    "http-server": "^0.12.3"
+  }
+}
