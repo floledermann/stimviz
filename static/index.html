@@ -94,7 +94,8 @@ Promise.all(filenames.map(fname => d3.json(fname))).then(participantData => {
   newSel.append("h2").text((d,i) => "Task " + i + " – " + taskSettings[d.task].name);
   
   let svg = newSel.append("svg")
-    .attr("viewBox","0 0 1000 1000")
+    .attr("viewBox","0 0 800 400")
+    .attr("preserveAspectRatio", "xMinYMin meet")
   ;
   
   let participantSel = svg.selectAll("g.participant").data(
@@ -105,18 +106,20 @@ Promise.all(filenames.map(fname => d3.json(fname))).then(participantData => {
   let stationSel = newSel.selectAll("g.station").data(
     d => Object.entries(d.stations).map(([k,v]) => Object.assign({}, v, {station: k, participant: d.participant, task: d.task}))
   );
-  newSel = stationSel.enter().append("g").attr("class", d => "station station" + d.station);
+  stationSel = stationSel.enter().append("g").attr("class", d => "station station" + d.station);
   
-  let x = d3.scaleLog().domain([0.01, 5]).range([0,1000]);
+  let x = d3.scaleLog().domain([0.01, 3]).range([0,800]);
+  //let x = d3.scaleLinear().domain([0, 3]).range([0,800]);
   
   let resolutionScale = d3.scaleOrdinal().domain(["C","A","D","B"]).range([0,1,2,3]);
+  let colorScale = d3.scaleLinear().domain([0,1]).range(["#ffffff","#666666"]);
     
-  let trialSel = newSel.selectAll("g.trial").data(
+  let trialSel = stationSel.selectAll("g.trial").data(
     d => Object.entries(d.trials).map(([k,v]) => Object.assign({}, v, {station: d.station, participant: d.participant, task: d.task}))
   );
-  newSel = trialSel.enter().append("g").attr("class", "trial");
-  
-  newSel.append("circle")
+  trialSel = trialSel.enter().append("g").attr("class", "trial");
+  /*
+  trialSel.append("circle")
     .attr("r", "5")
     .attr("cx", d => x(parseFloat(d.condition.size || d.condition.width || d.condition.fontSize)))
     .attr("cy", d => d.participant * 100 + resolutionScale(d.station) * 10)
@@ -124,6 +127,27 @@ Promise.all(filenames.map(fname => d3.json(fname))).then(participantData => {
     .attr("stroke-width", "1")
     .attr("stroke","#000000")
   ;
+  */
+  let successSel = stationSel.selectAll("g.successRate").data(
+    d => Array.from(d3.rollup(
+      d.trials,
+      arr => ({correct: arr.filter(t => taskSettings[d.task].correct(t)).length, trials: arr.length}),
+      t => t.condition[taskSettings[d.task].param]
+    ).entries()).map(([k,v]) => ({station: d.station, participant: d.participant, task: d.task, size: k, successRate: v.correct / v.trials, trials: v.trials, numCorrect: v.correct}))
+  );
+  
+  successSel = successSel.enter().append("g").attr("class", "successRate");
+  
+  let c = successSel.append("circle")
+    .attr("r", "5")
+    .attr("cx", d => x(parseFloat(d.size)))
+    .attr("cy", d => d.participant * 100 + resolutionScale(d.station) * 10)
+    .attr("fill", d => d.successRate == 1 ? "#000000" : colorScale(d.successRate))
+    .attr("stroke-width", "1")
+    .attr("stroke","#000000")
+  ;
+  
+  c.append("title").text(d => parseFloat(d.size).toFixed(2) + "mm: " + Math.round(d.successRate * 100) + "% (" + d.numCorrect + "/" + d.trials + ")");
   
 }) ;
 
