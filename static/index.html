@@ -27,42 +27,54 @@ let taskSettings = [
   { show: false, correct: x => false },
   { name: "Snellen E",
     param: "size",
+    choices: 4,
     correct: trial => trial.condition.angle == trial.response.angle
   },
   { name: "Line Interior",
     param: "size",
+    choices: 2,
     correct: trial => trial.condition.centerLine == trial.response.centerLine
   },
   { name: "Dashed Line 1",
     param: "width",
+    choices: 4,
     correct: trial => trial.condition.label == trial.response.label
   },
   { name: "Dashed Line 2",
     param: "width",
+    choices: 4,
     correct: trial => trial.condition.label == trial.response.label
   },
   { name: "TAO",
     param: "size",
+    choices: 10,
     correct: trial => trial.condition.shape == trial.response.shape
   },
   { name: "TAO Vanishing",
     param: "size",
+    choices: 10,
     correct: trial => trial.condition.shape == trial.response.shape
   },
   { name: "Text",
-    param: "fontSize",
+    param: "fontSize",  
+    choices: 4,
     correct: trial => trial.condition.text == trial.response.text
   }
 ];
 
-let filenames = [1,2,3].map(i => "../testdata/experiment-1/user_" + i.toLocaleString('en',{minimumIntegerDigits:3}) + ".json");
+const MIN_USER_ID = 1;
+const MAX_USER_ID = 5;
+
+let userIds = Array.from({length: MAX_USER_ID - MIN_USER_ID + 1}, (v,k)=>k+MIN_USER_ID);
+
+let filenames = userIds.map(i => "../testdata/experiment-1/user_" + i.toLocaleString('en',{minimumIntegerDigits:3}) + ".json");
+
+let taskData = [];
 
 Promise.all(filenames.map(fname => d3.json(fname))).then(participantData => {
   //console.log(participantData);
   
   // regroup data
-  let taskData = [];
-  
   for (let pd of participantData) {
   
     let participantId = pd.participantId;
@@ -94,17 +106,25 @@ Promise.all(filenames.map(fname => d3.json(fname))).then(participantData => {
   newSel.append("h2").text((d,i) => "Task " + i + " – " + taskSettings[d.task].name);
   
   let svg = newSel.append("svg")
-    .attr("viewBox","0 0 800 400")
+    .attr("viewBox","0 0 800 500")
     .attr("preserveAspectRatio", "xMinYMin meet")
   ;
   
   let participantSel = svg.selectAll("g.participant").data(
-    d => Object.entries(d.participants).map(([k,v]) => Object.assign({}, v, {participant: k, task: d.task}))
+    d => Object.entries(d.participants).map(([k,v]) => Object.assign({}, v, {
+      participant: k,
+      task: d.task
+    }))
   );
   newSel = participantSel.enter().append("g").attr("class", "participant");
   
   let stationSel = newSel.selectAll("g.station").data(
-    d => Object.entries(d.stations).map(([k,v]) => Object.assign({}, v, {station: k, participant: d.participant, task: d.task}))
+    d => Object.entries(d.stations).map(([k,v]) => Object.assign({}, v, {
+      station: k,
+      participant: d.participant,
+      task: d.task,
+      successScale: d3.scaleLinear().domain([1/taskSettings[d.task].choices,1]).range(["#ffffff","#555555"])
+    }))
   );
   stationSel = stationSel.enter().append("g").attr("class", d => "station station" + d.station);
   
@@ -112,7 +132,6 @@ Promise.all(filenames.map(fname => d3.json(fname))).then(participantData => {
   //let x = d3.scaleLinear().domain([0, 3]).range([0,800]);
   
   let resolutionScale = d3.scaleOrdinal().domain(["C","A","D","B"]).range([0,1,2,3]);
-  let colorScale = d3.scaleLinear().domain([0,1]).range(["#ffffff","#555555"]);
     
   let trialSel = stationSel.selectAll("g.trial").data(
     d => Object.entries(d.trials).map(([k,v]) => Object.assign({}, v, {station: d.station, participant: d.participant, task: d.task}))
@@ -132,8 +151,17 @@ Promise.all(filenames.map(fname => d3.json(fname))).then(participantData => {
     d => Array.from(d3.rollup(
       d.trials,
       arr => ({correct: arr.filter(t => taskSettings[d.task].correct(t)).length, trials: arr.length}),
-      t => t.condition[taskSettings[d.task].param]
-    ).entries()).map(([k,v]) => ({station: d.station, participant: d.participant, task: d.task, size: k, successRate: v.correct / v.trials, trials: v.trials, numCorrect: v.correct}))
+      t => Math.round(parseFloat(t.condition[taskSettings[d.task].param])*1000)/1000 // round digits to prevent floating point error
+    ).entries()).map(([k,v]) => ({
+      station: d.station,
+      participant: d.participant,
+      task: d.task,
+      size: k,
+      successRate: v.correct / v.trials,
+      trials: v.trials,
+      numCorrect: v.correct,
+      successScale: d.successScale
+    }))
   );
   
   successSel = successSel.enter().append("g").attr("class", "successRate");
@@ -141,8 +169,8 @@ Promise.all(filenames.map(fname => d3.json(fname))).then(participantData => {
   let c = successSel.append("circle")
     .attr("r", "5")
     .attr("cx", d => x(parseFloat(d.size)))
-    .attr("cy", d => d.participant * 100 + resolutionScale(d.station) * 10)
-    .attr("fill", d => d.successRate == 1 ? "#000000" : colorScale(d.successRate))
+    .attr("cy", d => 10 + (d.participant-1) * 100 + resolutionScale(d.station) * 10)
+    .attr("fill", d => d.successRate == 1 ? "#000000" : d.successScale(d.successRate))
     .attr("stroke-width", "1")
     .attr("stroke","#000000")
   ;
