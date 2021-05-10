@@ -108,7 +108,7 @@ Promise.all(filenames.map(fname => d3.json(fname))).then(participantData => {
   );
   stationSel = stationSel.enter().append("g").attr("class", d => "station station" + d.station);
   
-  let x = d3.scaleLog().domain([0.01, 3]).range([0,800]);
+  let x = d3.scaleLog().domain([0.0125, 3]).range([0,800]);
   //let x = d3.scaleLinear().domain([0, 3]).range([0,800]);
   
   let resolutionScale = d3.scaleOrdinal().domain(["C","A","D","B"]).range([0,1,2,3]);
