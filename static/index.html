@@ -24,23 +24,19 @@
 <script>
 
 let taskSettings = [
-  { show: false, correct: x => false },
+  { ignore: true, correct: x => false },
+  { ignore: true, correct: x => false },
   { name: "Snellen E",
     param: "size",
     choices: 4,
     correct: trial => trial.condition.angle == trial.response.angle
   },
   { name: "Line Interior",
-    param: "size",
-    choices: 2,
-    correct: trial => trial.condition.centerLine == trial.response.centerLine
-  },
-  { name: "Dashed Line 1",
     param: "width",
-    choices: 4,
-    correct: trial => trial.condition.label == trial.response.label
+    choices: 3,
+    correct: trial => trial.condition.lineCount == trial.response.lineCount
   },
-  { name: "Dashed Line 2",
+  { name: "Dashed Line",
     param: "width",
     choices: 4,
     correct: trial => trial.condition.label == trial.response.label
@@ -63,7 +59,7 @@ let taskSettings = [
 ];
 
 const MIN_USER_ID = 1;
-const MAX_USER_ID = 5;
+const MAX_USER_ID = 1;
 
 let userIds = Array.from({length: MAX_USER_ID - MIN_USER_ID + 1}, (v,k)=>k+MIN_USER_ID);
 
