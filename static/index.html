@@ -175,7 +175,7 @@ Promise.all(filenames.map(fname => d3.json(fname))).then(participantData => {
     .attr("stroke","#000000")
   ;
   
-  c.append("title").text(d => parseFloat(d.size).toFixed(2) + "mm: " + Math.round(d.successRate * 100) + "% (" + d.numCorrect + "/" + d.trials + ")");
+  c.append("title").text(d => parseFloat(d.size).toFixed(3) + "mm: " + Math.round(d.successRate * 100) + "% (" + d.numCorrect + "/" + d.trials + ")");
   
 }) ;
 
