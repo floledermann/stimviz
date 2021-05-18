@@ -2,6 +2,7 @@
   "name": "stimviz",
   "version": "0.0.1",
   "description": "",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -18,6 +19,7 @@
   },
   "homepage": "https://github.com/floledermann/stimviz#readme",
   "dependencies": {
+    "@fast-csv/format": "^4.3.5",
     "http-server": "^0.12.3"
   }
 }
