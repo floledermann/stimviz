@@ -23,12 +23,12 @@ let taskSettings = [
   { ignore: true, correct: x => false },
   { ignore: true, correct: x => false },
   { ignore: true, correct: x => false },
-  { name: "Snellen E",
+  { name: "Rotating E",
     param: "size",
     choices: 4,
     correct: trial => trial.condition.angle == trial.response.angle
   },
-  { name: "Line Interior",
+  { name: "Parallel Lines",
     param: "width",
     choices: 3,
     correct: trial => trial.condition.lineCount == trial.response.lineCount
@@ -38,12 +38,12 @@ let taskSettings = [
     choices: 4,
     correct: trial => trial.condition.label == trial.response.label
   },
-  { name: "TAO",
+  { name: "Point Symbols",
     param: "size",
     choices: 10,
     correct: trial => trial.condition.shape == trial.response.shape
   },
-  { name: "TAO Vanishing",
+  { name: "Points Symbols - Vanishing",
     param: "size",
     choices: 10,
     correct: trial => trial.condition.shape == trial.response.shape
@@ -55,8 +55,8 @@ let taskSettings = [
   }
 ];
 
-const MIN_USER_ID = 2;
-const MAX_USER_ID = 13;
+const MIN_USER_ID = 25;
+const MAX_USER_ID = 27;
 
 const numUsers = MAX_USER_ID - MIN_USER_ID + 1;
 
