@@ -7,7 +7,7 @@ import Dimension from "another-dimension";
 
 
 let dataDir = "testdata/experiment-1";
-let outputFileName = "all_aggregated_thresholds";
+let outputFileName = "all_aggregated_users";
 let outputFilePath = path.join(dataDir, outputFileName);
 
 const MIN_ID = 2;
@@ -80,9 +80,8 @@ let stationOrder = {
   
 
 
-let transformations = [
-  transformTasks
-];
+//let transformations = [transformTasks];
+let transformations = [transformUser];
 
 
 while( !MAX_ID || (id < MAX_ID)) {
@@ -133,6 +132,20 @@ function transformUser(d) {
   d.language = languages[d.results[2].trials[0].response.label.replace("\n"," ")].code;
   d.language_latin = languages[d.results[2].trials[0].response.label.replace("\n"," ")].latin;
   d.vision = vision[d.results[3].trials[0].response.label];
+
+  //get logMAR for participant from snellen task
+  let logMAR = Infinity;
+  for (let i=0; i<4; i++) {
+    let task = tasks["snellen"];
+    let res = d.results[STATIONS_OFFSET + i * TASKS_PER_STATION + task.offset];
+    let thresh = getThresholdFromTask(res, task.attr); 
+    if (thresh < logMAR) {
+      logMAR = thresh;
+    }
+  }
+  Dimension.configure({viewingDistance: 300});
+  d.logMAR = Math.log10(Dimension(logMAR/5, "mm").toNumber("arcmin"));
+  
   
   // predefine those first to have reliable order in output
   for (let i=0; i<4; i++) {
